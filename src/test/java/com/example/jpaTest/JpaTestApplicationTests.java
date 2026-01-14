@@ -274,9 +274,9 @@ class JpaTestApplicationTests {
 		 */
 
 		//지연로딩 적용 중 coupon find, coupon.getProduct().getProductName() 해보기 => 1+N발생
-//		for (Coupon coupon : allCoupon) {
-//			System.out.println("couponId:" + coupon.getCouponId() + ", productName:" + coupon.getProduct().getProductName());
-//		}
+		for (Coupon coupon : allCoupon) {
+			System.out.println("couponId:" + coupon.getCouponId() + ", productName:" + coupon.getProduct().getProductName());
+		}
 
 		//지연로딩 적용 후 fetch join 해보기 => 1+N 발생 안 함
 		List<Coupon> allCouponByFetchJoin = couponService.getAllCouponByFetchJoin();
@@ -291,6 +291,85 @@ class JpaTestApplicationTests {
 		 * -LAZY LOADING으로 product를 설정해둔다면, coupon findAll(getAllCoupon) 조회시 coupon만 조회. 이후 product 접근시 N만큼 가져와짐(1+N)
 		 * -LAZY LOADING으로 product를 설정 후, coupon findAll을 fetch join 적용시 바로 join모드로 1번 가져와짐
 		 * =>기본적으로 LAZY LOADING 설정 후 N 처리가 될 곳에 fetch join을 임의로 적용하는 것이 좋음
+		 */
+	}
+
+	@Description("1+N fetch size 설정 테스트")
+	@Test
+	@Transactional
+	@Rollback(false)
+	public void n1IssueFetchSizeSettingTest() {
+		/**
+		 * [테스트할 것]
+		 * Coupon조회시 fetch size 설정한 것 만큼 Product 조회쿼리가 실행되는지 확인
+		 */
+
+		//상품세팅
+		List<Product> productList = new ArrayList<>();
+
+		for (int i=0; i < 20; i++) {
+			Product product = new Product();
+			product.setProductName("상품_" + i);
+			product.setPrice(10000);
+			productService.saveProduct(product);
+
+			productList.add(product);
+		}
+
+		//쿠폰세팅
+		List<Coupon> couponList = new ArrayList<>();
+		Random random = new Random();
+
+		for (int i=0; i < 50; i++) {
+			Coupon coupon = new Coupon();
+			coupon.setCouponId("OL1000" + i);
+			coupon.setCouponPrice(10000);
+
+			Product product = productList.get(random.nextInt(productList.size()));
+			coupon.saveCouponAndProduct(product);
+
+			couponService.saveCoupon(coupon);
+
+			couponList.add(coupon);
+		}
+
+		em.flush();
+		em.clear();
+
+		//coupon 전체 조회
+		List<Coupon> allCoupon = couponService.getAllCoupon();
+
+		/**
+		 * 출력 로그
+		 * Hibernate:
+		 *     select
+		 *         c1_0.coupon_id,
+		 *         c1_0.coupon_price,
+		 *         c1_0.product_id,
+		 *         c1_0.sll_pocy_no
+		 *     from
+		 *         coupon c1_0
+		 * Hibernate:
+		 *     select
+		 *         p1_0.product_id,
+		 *         p1_0.price,
+		 *         p1_0.product_name
+		 *     from
+		 *         product p1_0
+		 *     where
+		 *         p1_0.product_id in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		 * 쿠폰상품명: 상품_6
+		 * 쿠폰상품명: 상품_8
+		 * 쿠폰상품명: 상품_15
+		 * ...생략
+		 */
+		for (Coupon coupon : allCoupon) {
+			System.out.println("쿠폰상품명: " +coupon.getProduct().getProductName());
+		}
+
+		/**
+		 * [테스트 결과]
+		 * fetch size 설정을 했을 때 지연로딩상황에서 Product접근시 size 설정만큼 IN절로 가져오는 것을 확인
 		 */
 	}
 }

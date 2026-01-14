@@ -18,7 +18,6 @@ public class Coupon {
     @JoinColumn(name = "product_id") // FK 컬럼명 명시 (권장)
     private Product product;
 
-
     public String getCouponId() {
         return couponId;
     }
