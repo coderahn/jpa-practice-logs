@@ -372,4 +372,74 @@ class JpaTestApplicationTests {
 		 * fetch size 설정을 했을 때 지연로딩상황에서 Product접근시 size 설정만큼 IN절로 가져오는 것을 확인
 		 */
 	}
+
+	@Test
+	public void lazyLoadingProxyTest(){
+		/**
+		 * [테스트할 것]
+		 * 지연로딩 세팅 상태에서 gerReference호출하여 프록시 상태 객체 확인
+		 */
+
+		//상품세팅
+		List<Product> productList = new ArrayList<>();
+
+		for (int i=0; i < 20; i++) {
+			Product product = new Product();
+			product.setProductName("상품_" + i);
+			product.setPrice(10000);
+			productService.saveProduct(product);
+
+			productList.add(product);
+		}
+
+		//쿠폰세팅
+		List<Coupon> couponList = new ArrayList<>();
+		Random random = new Random();
+
+		for (int i=0; i < 50; i++) {
+			Coupon coupon = new Coupon();
+			coupon.setCouponId("OL1000" + i);
+			coupon.setCouponPrice(10000);
+
+			Product product = productList.get(random.nextInt(productList.size()));
+			coupon.saveCouponAndProduct(product);
+
+			couponService.saveCoupon(coupon);
+
+			couponList.add(coupon);
+		}
+
+		/**
+		 * 출력 로그
+		 * productProxy: com.example.jpaTest.Entity.Product$HibernateProxy
+		 * isSameProxy: true
+		 * Hibernate:
+		 *     select
+		 *         p1_0.product_id,
+		 *         p1_0.price,
+		 *         p1_0.product_name
+		 *     from
+		 *         product p1_0
+		 *     where
+		 *         p1_0.product_id in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		 * productName: 상품_17
+		 * productProxy: com.example.jpaTest.Entity.Product$HibernateProxy
+		 * isSameProxy: true
+		 * productName: 상품_14
+		 * productProxy: com.example.jpaTest.Entity.Product$HibernateProxy
+		 * isSameProxy: true
+		 * productName: 상품_7
+		 *
+		 * ...생략
+		 */
+		//프록시 정보 테스트용
+		couponService.getTeamProxy();
+
+		/**
+		 * [테스트 결과]
+		 * 지연로딩 상태에서 Team은 프록시상태로 세팅만 되는 것을 확인
+		 * getProduct, getReference(Product..) 동일 메모리 참조 객체(equals true)
+		 * getProductName시 프록시초기화로 1+N발생 -> fetch join이나 batch fetch join 설정이 있다면 pass
+		 */
+	}
 }
