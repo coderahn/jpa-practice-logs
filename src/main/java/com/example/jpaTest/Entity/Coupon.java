@@ -1,14 +1,14 @@
 package com.example.jpaTest.Entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import org.hibernate.annotations.Fetch;
 
 @Entity
 public class Coupon {
     @Id
+    @Column(name="COUPON_ID")
     private String couponId;
+
+    private String couponName;
 
     private int couponPrice;
 
@@ -54,5 +54,13 @@ public class Coupon {
     public void saveCouponAndProduct(Product product) {
         this.product = product;
         product.getCouponList().add(this);
+    }
+
+    public String getCouponName() {
+        return couponName;
+    }
+
+    public void setCouponName(String couponName) {
+        this.couponName = couponName;
     }
 }

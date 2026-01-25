@@ -437,7 +437,7 @@ class JpaTestApplicationTests {
 
 		/**
 		 * [테스트 결과]
-		 * 지연로딩 상태에서 Team은 프록시상태로 세팅만 되는 것을 확인
+		 * 지연로딩 상태에서 product는 프록시 상태로 세팅만 되는 것을 확인
 		 * getProduct, getReference(Product..) 동일 메모리 참조 객체(equals true)
 		 * getProductName시 프록시초기화로 1+N발생 -> fetch join이나 batch fetch join 설정이 있다면 pass
 		 */
