@@ -1,6 +1,7 @@
 package com.example.jpaTest.repository;
 
 import com.example.jpaTest.Entity.Coupon;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -31,5 +32,14 @@ public interface CouponRepository extends JpaRepository<Coupon, String> {
      */
     @Query("select c from Coupon c join fetch c.product p where p.productName = :productName")
     List<Coupon> findByProductName(@Param("productName") String productName);
+
+    /**
+     * EntityGraph: fetch join을 스프링데이터JPA로 하는 방식
+     */
+    @EntityGraph(attributePaths = {"product"})
+    List<Coupon> findAll();
+
+    @EntityGraph(attributePaths = {"product"})
+    List<Coupon> findByCouponId(String couponId);
 
 }

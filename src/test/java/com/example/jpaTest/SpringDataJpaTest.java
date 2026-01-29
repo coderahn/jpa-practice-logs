@@ -170,4 +170,57 @@ public class SpringDataJpaTest {
          * 초반에 2개의 select문 나가는 것은 couponId 임의 세팅으로 캐시 조회 우선을 하기 때문
          */
     }
+
+
+    @Test
+    public void entityGraphTest() {
+        /**
+         * [테스트할 것]
+         * LAZY 세팅 상황에서 EntityGraph를 통해 product 가져오기
+         *
+          */
+
+        /**
+         * [콘솔로그]
+         *  select
+         *         c1_0.coupon_id,
+         *         c1_0.coupon_name,
+         *         c1_0.coupon_price,
+         *         p1_0.product_id,
+         *         p1_0.price,
+         *         p1_0.product_name,
+         *         c1_0.sll_pocy_no
+         *     from
+         *         coupon c1_0
+         *     left join
+         *         product p1_0
+         *             on p1_0.product_id=c1_0.product_id
+         */
+        List<Coupon> couponList = couponRepository.findAll();
+
+        /**
+         * [콘솔로그]
+         *   select
+         *         c1_0.coupon_id,
+         *         c1_0.coupon_name,
+         *         c1_0.coupon_price,
+         *         p1_0.product_id,
+         *         p1_0.price,
+         *         p1_0.product_name,
+         *         c1_0.sll_pocy_no
+         *     from
+         *         coupon c1_0
+         *     left join
+         *         product p1_0
+         *             on p1_0.product_id=c1_0.product_id
+         *     where
+         *         c1_0.coupon_id=?
+         */
+        List<Coupon> coupon = couponRepository.findByCouponId("A1000");
+
+        /**
+         * [테스트결과]
+         * EntityGraph 적용시 LAZY 설정에도 left join으로 fetch join 방식 조회 확인
+         */
+    }
 }
